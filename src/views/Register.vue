@@ -1,13 +1,32 @@
 <script setup>
+import { useRouter } from 'vue-router';
+import api from '../api';
+
+const router = useRouter()
+
+var email, password, confrimPassword
+function register() {
+    api.users.register(email, password, confrimPassword).then(response => {
+        if (response.data.code == 0) {
+            alert("注册成功")
+            router.push('/login')
+        } else {
+            alert(response.data.message)
+        }
+    }).catch(error => {
+        console.log(error)
+    })
+}
+
 </script>
 
 <template>
     <div class="registration-container">
         <h2>Register</h2>
-        <input id="email" type="email" placeholder="Email">
-        <input id="password" type="password" placeholder="Password">
-        <input id="confirmPassword" type="password" placeholder="Confirm Password">
-        <button onclick="register()">Register</button>
+        <input id="email" type="email" placeholder="Email" v-model="email">
+        <input id="password" type="password" placeholder="Password" v-model="password">
+        <input id="confirmPassword" type="password" placeholder="Confirm Password" v-model="confrimPassword">
+        <button @click="register">Register</button>
     </div>
 </template>
 

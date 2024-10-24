@@ -1,12 +1,32 @@
 <script setup>
+import { useRouter } from 'vue-router';
+import api from '../api';
+
+const router = useRouter()
+
+const email = "1847@qq.com"
+const password = "root"
+function login() {
+    api.users.login(email, password).then(response => {
+        if (response.data.code == 0) {
+            alert("登录成功")
+            localStorage.setItem("token", response.data.data.accessToken)
+            router.push('/')
+        } else {
+            alert(response.data.message)
+        }
+    }).catch(error => {
+        console.error(error);
+    });
+}
 </script>
 
 <template>
     <div class="login-container">
         <h2>Login</h2>
-        <input id="email" type="text" placeholder="Email">
-        <input id="password" type="password" placeholder="Password">
-        <button onclick="login()">Login</button>
+        <input id="email" type="text" placeholder="Email" v-model="email">
+        <input id="password" type="password" placeholder="Password" v-model="password">
+        <button @click="login">Login</button>
     </div>
 </template>
 
