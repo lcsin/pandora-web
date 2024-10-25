@@ -7,4 +7,14 @@ function getMusicList() {
     })
 }
 
-export default { getMusicList }
+function searchMusic(query) {
+    return request({
+        method: "POST",
+        url: "/music/search",
+        data: {
+            "query": query
+        }
+    })
+}
+
+export default { getMusicList, searchMusic }

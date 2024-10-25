@@ -6,11 +6,12 @@ const router = useRouter()
 
 const email = "1847@qq.com"
 const password = "root"
+// let email, password
 function login() {
     api.users.login(email, password).then(response => {
         if (response.data.code == 0) {
             alert("登录成功")
-            localStorage.setItem("token", response.data.data.accessToken)
+            localStorage.setItem("pandora.token", response.data.data.accessToken)
             router.push('/')
         } else {
             alert(response.data.message)
@@ -32,7 +33,8 @@ function login() {
 
 <style scoped>
 .login-container {
-    width: 300px;
+    width: 400px;
+    height: 250px;
     margin: 100px auto;
     background-color: white;
     padding: 20px;

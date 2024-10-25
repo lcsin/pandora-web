@@ -32,7 +32,8 @@ function register() {
 
 <style scoped>
 .registration-container {
-    width: 300px;
+    width: 400px;
+    height: 300px;
     margin: 100px auto;
     background-color: white;
     padding: 20px;

@@ -1,8 +1,9 @@
 import axios from 'axios'
+import config from '../config/config'
 
 const request = axios.create({
-    baseURL: "http://localhost:8080/api/v1",
-    headers: { "Authorization": localStorage.getItem("token") },
+    baseURL: config.baseURL + "api/v1",
+    headers: { "Authorization": localStorage.getItem("pandora.token") },
 })
 
 export default request

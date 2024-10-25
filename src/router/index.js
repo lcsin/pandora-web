@@ -12,18 +12,10 @@ const router = createRouter({
 })
 
 router.beforeEach((to, from) => {
-  api.users.info().then(response => {
-    if (response.data.code == -3 && to.name !== 'login' && to.name !== 'register') {
-      return { name: 'login' }
-    }
-  }).catch(error => {
-    console.log(error)
+  const token = localStorage.getItem("pandora.token")
+  if (token == null && to.name !== 'login' && to.name !== 'register') {
     return { name: 'login' }
-  })
-
-  // if (token == null && to.name !== 'login' && to.name !== 'register') {
-  //   return { name: 'login' }
-  // }
+  }
 })
 
 export default router
