@@ -12,9 +12,9 @@ let musicList = ref([])
 let playList = ref([])
 function getMusicList() {
     api.music.getMusicList().then(response => {
-        if (response.data.code == 0) {
-            musicList.value = response.data.data
-            playList.value = response.data.data.map(item => ({ title: item.name + " - " + item.author, url: config.baseURL + item.url }))
+        if (response.code == 0) {
+            musicList.value = response.data
+            playList.value = response.data.map(item => ({ title: item.name + " - " + item.author, url: config.baseURL + item.url }))
         }
     }).catch(error => {
         console.log(error)
@@ -25,9 +25,9 @@ function getMusicList() {
 let queryMusic = ref('')
 function searchMusic() {
     api.music.searchMusic(queryMusic.value).then(response => {
-        if (response.data.code == 0) {
-            musicList.value = response.data.data
-            playList.value = response.data.data.map(item => ({ title: item.name + " - " + item.author, url: config.baseURL + item.url }))
+        if (response.code == 0) {
+            musicList.value = response.data
+            playList.value = response.data.map(item => ({ title: item.name + " - " + item.author, url: config.baseURL + item.url }))
         }
     })
 }

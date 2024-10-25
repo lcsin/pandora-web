@@ -9,12 +9,12 @@ const password = "root"
 // let email, password
 function login() {
     api.users.login(email, password).then(response => {
-        if (response.data.code == 0) {
+        if (response.code == 0) {
             alert("登录成功")
-            localStorage.setItem("pandora.token", response.data.data.accessToken)
+            localStorage.setItem("pandora.token", response.data.accessToken)
             router.push('/')
         } else {
-            alert(response.data.message)
+            alert(response.message)
         }
     }).catch(error => {
         console.error(error);

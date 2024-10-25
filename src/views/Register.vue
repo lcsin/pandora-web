@@ -7,11 +7,11 @@ const router = useRouter()
 var email, password, confrimPassword
 function register() {
     api.users.register(email, password, confrimPassword).then(response => {
-        if (response.data.code == 0) {
+        if (response.code == 0) {
             alert("注册成功")
             router.push('/login')
         } else {
-            alert(response.data.message)
+            alert(response.message)
         }
     }).catch(error => {
         console.log(error)
