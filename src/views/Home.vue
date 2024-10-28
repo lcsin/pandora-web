@@ -181,13 +181,13 @@ function playDbClickMusic(idx) {
                         <span class="playing-icon">🔀</span>
                     </el-button>
                     <el-button id="prev-button" ref="prevButton" @click="playPrevMusic" text>
-                        <span class="playing-icon">⏮️</span>
+                        <span class="playing-icon">⬅️</span>
                     </el-button>
                     <el-button id="play-pause-button" @click="playMusic" ref="playPauseButton" text>
                         <span class="playing-icon" ref="playPauseButtonText">▶️</span>
                     </el-button>
                     <el-button id="next-button" ref="nextButton" @click="playNextMusic" text>
-                        <span class="playing-icon">⏭️</span>
+                        <span class="playing-icon">➡️</span>
                     </el-button>
                 </div>
                 <div>
