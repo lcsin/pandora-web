@@ -42,7 +42,8 @@ const progress = ref(null);
 const timeDisplay = ref(null);
 const currentSongDisplay = ref(null);
 
-let currentTrack = 0;
+let currentTrack = ref(0);
+let randFlag = ref(false)
 function loadTrack(trackIndex) {
     if (trackIndex >= 0 && trackIndex < playList.value.length) {
         currentTrack = trackIndex;
@@ -63,6 +64,12 @@ function playMusic() {
     }
 }
 
+function playRandMusic() {
+    randFlag.value = true
+    currentTrack = Math.floor(Math.random() * playList.value.length)
+    loadTrack(currentTrack)
+}
+
 function playPrevMusic() {
     loadTrack(currentTrack - 1);
 }
@@ -71,7 +78,7 @@ function playNextMusic() {
     loadTrack(currentTrack + 1);
 }
 
-function playProgressMusic() {
+function playProgressMusic(e) {
     const clickPosition = (e.pageX - progressBar.value.offsetLeft) / progressBar.value.offsetWidth;
     audioPlayer.value.currentTime = clickPosition * audioPlayer.value.duration;
 }
@@ -92,7 +99,12 @@ function musicPlaying() {
 }
 
 function musicEnded() {
-    loadTrack(currentTrack + 1);
+    if (randFlag) {
+        currentTrack = Math.floor(Math.random() * playList.value.length)
+        loadTrack(currentTrack)
+    } else {
+        loadTrack(currentTrack + 1);
+    }
 }
 
 function playDbClickMusic(idx) {
@@ -135,7 +147,8 @@ function playDbClickMusic(idx) {
     <div class="divider" id="divider" @mousedown="clickDrag"></div>
     <div class="main-content">
         <div class="search-bar">
-            <input type="text" placeholder="搜索音乐..." @keyup.enter="searchMusic" v-model="queryMusic">
+            <!-- <input type="text" placeholder="搜索音乐..." @keyup.enter="searchMusic" v-model="queryMusic"> -->
+            <el-input v-model="queryMusic" placeholder="搜索音乐..." clearable @keyup.enter="searchMusic" />
         </div>
         <div class="song-list">
             <table>
@@ -154,19 +167,32 @@ function playDbClickMusic(idx) {
             </table>
         </div>
         <div class="player">
-            <div class="now-playing">
-                <strong>正在播放：</strong>
-                <span id="current-song" ref="currentSongDisplay"> 未选择歌曲</span>
-                <div class="progress-bar" id="progress-bar" ref="progressBar" @click="playProgressMusic">
-                    <div class="progress" id="progress" ref="progress"></div>
+            <div class="progress-bar" id="progress-bar" ref="progressBar" @click="playProgressMusic">
+                <div class="progress" id="progress" ref="progress"></div>
+            </div>
+            <div class="playing-info">
+                <div class="now-playing">
+                    <strong>正在播放：</strong>
+                    <span id="current-song" ref="currentSongDisplay"> 未选择歌曲</span>
+                </div>
+                <div class="player-controls">
+                    <el-button class="playing-rand" id="rand-button" ref="randButton" @click="playRandMusic" text>
+                        <span class="playing-icon">🔀</span>
+                    </el-button>
+                    <el-button id="prev-button" ref="prevButton" @click="playPrevMusic" text>
+                        <span class="playing-icon">⏮️</span>
+                    </el-button>
+                    <el-button id="play-pause-button" @click="playMusic" ref="playPauseButton" text>
+                        <span class="playing-icon">▶️</span>
+                    </el-button>
+                    <el-button id="next-button" ref="nextButton" @click="playNextMusic" text>
+                        <span class="playing-icon">⏭️</span>
+                    </el-button>
+                </div>
+                <div>
+                    <div class="playing-time" id="time-display" ref="timeDisplay">0:00 / 0:00</div>
                 </div>
             </div>
-            <div class="player-controls">
-                <button id="prev-button" ref="prevButton" @click="playPrevMusic">⏮️</button>
-                <button id="play-pause-button" @click="playMusic" ref="playPauseButton">▶️</button>
-                <button id="next-button" ref="nextButton" @click="playNextMusic">⏭️</button>
-            </div>
-            <div id="time-display" ref="timeDisplay">0:00 / 0:00</div>
         </div>
     </div>
 
@@ -215,11 +241,11 @@ function playDbClickMusic(idx) {
 }
 
 .player {
-    height: 100px;
+    height: 80px;
     background-color: #2c3e50;
     color: #ecf0f1;
     padding: 20px;
-    display: flex;
+    /* display: flex; */
     align-items: center;
     justify-content: space-between;
 }
@@ -266,16 +292,16 @@ tr:hover {
     background-color: #f5f5f5;
 }
 
-input[type="text"] {
+/* input[type="text"] {
     width: 100%;
     padding: 10px;
     border: none;
     border-radius: 20px;
     background-color: #ecf0f1;
     color: #2c3e50;
-}
+} */
 
-button {
+/* button {
     padding: 10px 20px;
     background-color: #3498db;
     color: #fff;
@@ -283,20 +309,31 @@ button {
     border-radius: 20px;
     cursor: pointer;
     transition: all 0.3s ease;
+} */
+
+/* button:hover {
+    background-color: #2980b9;
+} */
+
+.playing-icon {
+    font-size: 20px;
 }
 
-button:hover {
-    background-color: #2980b9;
+.playing-info {
+    display: flex;
 }
 
 .player-controls {
     display: flex;
-    gap: 10px;
+    /* gap: 10px; */
+    padding-top: 12px;
+    padding-right: 20px;
 }
 
 .now-playing {
     font-size: 14px;
     flex-grow: 1;
+    padding-top: 15px;
 }
 
 .progress-bar {
@@ -305,7 +342,7 @@ button:hover {
     height: 5px;
     border-radius: 5px;
     overflow: hidden;
-    margin-top: 10px;
+    /* margin-top: 10px; */
     cursor: pointer;
 }
 
@@ -314,5 +351,9 @@ button:hover {
     height: 100%;
     background-color: #3498db;
     transition: width 0.1s linear;
+}
+
+.playing-time {
+    padding-top: 15px;
 }
 </style>
