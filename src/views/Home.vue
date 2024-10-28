@@ -35,6 +35,7 @@ function searchMusic() {
 // 音乐播放功能
 const audioPlayer = ref(null)
 const playPauseButton = ref(null)
+const playPauseButtonText = ref(null)
 const prevButton = ref(null);
 const nextButton = ref(null);
 const progressBar = ref(null);
@@ -50,17 +51,17 @@ function loadTrack(trackIndex) {
         audioPlayer.value.src = playList.value[currentTrack].url;
         currentSongDisplay.value.textContent = playList.value[currentTrack].title;
         audioPlayer.value.play();
-        playPauseButton.value.textContent = "⏸️";
+        playPauseButtonText.value.textContent = "⏸️";
     }
 }
 
 function playMusic() {
     if (audioPlayer.value.paused) {
         audioPlayer.value.play();
-        playPauseButton.value.textContent = "⏸️";
+        playPauseButtonText.value.textContent = "⏸️";
     } else {
         audioPlayer.value.pause();
-        playPauseButton.value.textContent = "▶️";
+        playPauseButtonText.value.textContent = "▶️";
     }
 }
 
@@ -183,7 +184,7 @@ function playDbClickMusic(idx) {
                         <span class="playing-icon">⏮️</span>
                     </el-button>
                     <el-button id="play-pause-button" @click="playMusic" ref="playPauseButton" text>
-                        <span class="playing-icon">▶️</span>
+                        <span class="playing-icon" ref="playPauseButtonText">▶️</span>
                     </el-button>
                     <el-button id="next-button" ref="nextButton" @click="playNextMusic" text>
                         <span class="playing-icon">⏭️</span>
