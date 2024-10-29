@@ -30,4 +30,26 @@ function uploadMusic(fileList) {
     })
 }
 
-export default { getMusicList, searchMusic, uploadMusic }
+function deleteMuisc(ID) {
+    return request({
+        method: "POST",
+        url: "/music/delete",
+        data: {
+            "id": ID
+        }
+    })
+}
+
+function updateMusic(ID, name, author) {
+    return request({
+        method: "POST",
+        url: "/music/update",
+        data: {
+            "id": ID,
+            "name": name,
+            "author": author
+        }
+    })
+}
+
+export default { getMusicList, searchMusic, uploadMusic, deleteMuisc, updateMusic }

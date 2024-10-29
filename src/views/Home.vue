@@ -8,14 +8,18 @@ onMounted(() => {
     getMusicList()
 })
 
+
 // 获取音乐列表
-let musicList = ref([])
-let playList = ref([])
+const tableLoading = ref(false)
+const musicList = ref([])
+const playList = ref([])
 function getMusicList() {
+    tableLoading.value = true
     api.music.getMusicList().then(response => {
         if (response.code == 0) {
             musicList.value = response.data
             playList.value = response.data.map(item => ({ title: item.name + " - " + item.author, url: config.baseURL + item.url }))
+            tableLoading.value = false
         } else {
             tools.NotifyError(response.message)
         }
@@ -23,12 +27,14 @@ function getMusicList() {
 }
 
 // 搜索音乐
-let queryMusic = ref('')
+const queryMusic = ref('')
 function searchMusic() {
+    tableLoading.value = true
     api.music.searchMusic(queryMusic.value).then(response => {
         if (response.code == 0) {
             musicList.value = response.data
             playList.value = response.data.map(item => ({ title: item.name + " - " + item.author, url: config.baseURL + item.url }))
+            tableLoading.value = false
         } else {
             tools.NotifyError(response.message)
         }
@@ -36,23 +42,68 @@ function searchMusic() {
 }
 
 // 上传音乐
-const dialogVisible = ref(false)
+const uploadDialogLoading = ref(false)
+const uploadDialogVisible = ref(false)
 const uploadButton = ref(null)
 const fileList = ref([])
 
-function cancelUpload() {
-    dialogVisible.value = false
+function closeDialog() {
+    uploadDialogVisible.value = false
+    uploadDialogLoading.value = false
     fileList.value = []
+
+    updateDialogVisible.value = false
+    updateDialogLoading.value = false
+    updateMusicForm.value = {}
 }
 
 function confirmUpload() {
+    uploadDialogLoading.value = true
     api.music.uploadMusic(fileList.value).then(response => {
         if (response.code == 0) {
+            uploadDialogLoading.value = false
+            uploadDialogVisible.value = false
+            fileList.value = []
             tools.NotifySuccess('上传成功')
-            dialogVisible.value = false
             getMusicList()
         } else {
-            alert("上传失败")
+            tools.NotifyError(response.message)
+        }
+    })
+}
+
+// 删除音乐
+function deleteMusic(id) {
+    tableLoading.value = true
+    api.music.deleteMuisc(id).then(response => {
+        if (response.code == 0) {
+            tableLoading.value = false
+            tools.NotifySuccess('删除成功')
+            getMusicList()
+        } else {
+            tools.NotifyError(response.message)
+        }
+    })
+}
+
+// 下载音乐
+function downloadMusic(url) {
+    window.open(config.baseURL + url, '_blank');
+}
+
+// 更新音乐信息
+const updateDialogLoading = ref(false)
+const updateDialogVisible = ref(false)
+const updateMusicForm = ref({})
+function updateMusic() {
+    updateDialogLoading.value = true
+    api.music.updateMusic(updateMusicForm.value.id, updateMusicForm.value.name, updateMusicForm.value.author).then(response => {
+        if (response.code == 0) {
+            updateDialogVisible.value = false
+            updateDialogLoading.value = false
+            tools.NotifySuccess('更新成功')
+            getMusicList()
+        } else {
             tools.NotifyError(response.message)
         }
     })
@@ -185,17 +236,35 @@ function playDbClickMusic(idx) {
                 <el-table-column prop="address" label="操作" />
             </el-table> -->
 
-            <table>
+            <table v-loading="tableLoading">
                 <tbody>
                     <tr>
                         <th>歌曲</th>
                         <th>歌手</th>
-                        <!-- <th>时长</th> -->
+                        <th>操作</th>
                     </tr>
                     <tr v-for="(v, idx) in musicList" @dblclick="playDbClickMusic(idx)">
                         <td>{{ v.name }}</td>
                         <td>{{ v.author }}</td>
                         <!-- <td>{{ v.time }}</td> -->
+                        <td>
+                            <div class="op-buttons">
+                                <el-button type="primary" text @click="downloadMusic(v.url)">
+                                    下载
+                                </el-button>
+                                <el-button type="primary" text
+                                    @click="updateDialogVisible = true; updateMusicForm = (v)">
+                                    修改
+                                </el-button>
+                                <el-popconfirm title="确认删除该歌曲?" @confirm="deleteMusic(v.id)">
+                                    <template #reference>
+                                        <el-button type="primary" text>
+                                            删除
+                                        </el-button>
+                                    </template>
+                                </el-popconfirm>
+                            </div>
+                        </td>
                     </tr>
                 </tbody>
             </table>
@@ -211,7 +280,7 @@ function playDbClickMusic(idx) {
                 </div>
                 <div class="player-controls">
                     <el-tooltip content="上传音乐" effect="light">
-                        <el-button id="upload-button" ref="uploadButton" @click="dialogVisible = true" text>
+                        <el-button id="upload-button" ref="uploadButton" @click="uploadDialogVisible = true" text>
                             <span class="playing-icon">⏏️</span>
                         </el-button>
                     </el-tooltip>
@@ -246,16 +315,39 @@ function playDbClickMusic(idx) {
     <audio id="audio-player" ref="audioPlayer" @timeupdate="musicPlaying" @ended="musicEnded"></audio>
 
     <!-- 上传音乐dialog -->
-    <el-dialog v-model="dialogVisible" title="上传音乐" width="500" :before-close="cancelUpload">
-        <span>⚠️ 上传音乐时，文件名称应遵循格式：歌曲名 - 作者名。</span>
-        <br><br>
-        <el-upload v-model:file-list="fileList" multiple :auto-upload="false">
-            <el-button type="primary">Click to upload</el-button>
-        </el-upload>
+    <el-dialog v-model="uploadDialogVisible" title="上传音乐" width="500" :before-close="closeDialog">
+        <div v-loading="uploadDialogLoading">
+            <span>⚠️ 上传音乐时，文件名称应遵循格式：歌曲名 - 作者名。</span>
+            <br><br>
+            <el-upload v-model:file-list="fileList" multiple :auto-upload="false">
+                <el-button type="primary">Click to upload</el-button>
+            </el-upload>
+        </div>
         <template #footer>
             <div class="dialog-footer">
-                <el-button @click="cancelUpload">Cancel</el-button>
+                <el-button @click="closeDialog">Cancel</el-button>
                 <el-button type="primary" @click="confirmUpload">
+                    Confirm
+                </el-button>
+            </div>
+        </template>
+    </el-dialog>
+
+    <!-- 更新音乐dialog -->
+    <el-dialog :model="updateMusicForm" v-model="updateDialogVisible" title="修改音乐信息" width="500"
+        :before-close="closeDialog">
+        <el-form v-loading="updateDialogLoading" label-width="auto" style="max-width: 600px">
+            <el-form-item label="歌曲名称">
+                <el-input v-model="updateMusicForm.name" />
+            </el-form-item>
+            <el-form-item label="歌曲作者">
+                <el-input v-model="updateMusicForm.author" />
+            </el-form-item>
+        </el-form>
+        <template #footer>
+            <div class="dialog-footer">
+                <el-button @click="closeDialog">Cancel</el-button>
+                <el-button type="primary" @click="updateMusic">
                     Confirm
                 </el-button>
             </div>
@@ -302,6 +394,10 @@ function playDbClickMusic(idx) {
     flex-grow: 1;
     overflow-y: auto;
     padding: 20px;
+}
+
+.op-buttons button {
+    padding: 0;
 }
 
 .player {
