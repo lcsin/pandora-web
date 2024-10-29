@@ -1,5 +1,6 @@
 import axios from 'axios'
 import config from '../config/config'
+import tools from './tools'
 
 const request = axios.create({
     baseURL: config.baseURL + "api/v1",
@@ -15,6 +16,10 @@ request.interceptors.response.use(response => {
         return response.data
     }
     return
+}, error => {
+    console.log(error)
+    tools.NotifyError('服务器异常')
+    return Promise.reject(error);
 })
 
 export default request

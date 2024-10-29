@@ -1,6 +1,7 @@
 <script setup>
 import { useRouter } from 'vue-router';
 import api from '../api';
+import tools from '../utils/tools';
 
 const router = useRouter()
 
@@ -8,13 +9,11 @@ var email, password, confrimPassword
 function register() {
     api.users.register(email, password, confrimPassword).then(response => {
         if (response.code == 0) {
-            alert("注册成功")
+            tools.NotifySuccess('注册成功')
             router.push('/login')
         } else {
-            alert(response.message)
+            tools.NotifyError(response.message)
         }
-    }).catch(error => {
-        console.log(error)
     })
 }
 

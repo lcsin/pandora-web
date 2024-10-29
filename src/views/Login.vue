@@ -1,24 +1,23 @@
 <script setup>
 import { useRouter } from 'vue-router';
 import api from '../api';
+import tools from '../utils/tools';
 
 const router = useRouter()
 
 const email = "1847@qq.com"
 const password = "root"
-// let email, password
 function login() {
     api.users.login(email, password).then(response => {
         if (response.code == 0) {
-            alert("登录成功")
+            tools.NotifySuccess('登录成功')
             localStorage.setItem("pandora.token", response.data.accessToken)
             router.push('/')
         } else {
             alert(response.message)
+            tools.NotifyError(response.message)
         }
-    }).catch(error => {
-        console.error(error);
-    });
+    })
 }
 </script>
 

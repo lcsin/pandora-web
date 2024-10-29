@@ -2,6 +2,7 @@
 import { onMounted, ref } from 'vue';
 import api from '../api';
 import config from '../config/config';
+import tools from '../utils/tools';
 
 onMounted(() => {
     getMusicList()
@@ -15,9 +16,9 @@ function getMusicList() {
         if (response.code == 0) {
             musicList.value = response.data
             playList.value = response.data.map(item => ({ title: item.name + " - " + item.author, url: config.baseURL + item.url }))
+        } else {
+            tools.NotifyError(response.message)
         }
-    }).catch(error => {
-        console.log(error)
     })
 }
 
@@ -28,6 +29,30 @@ function searchMusic() {
         if (response.code == 0) {
             musicList.value = response.data
             playList.value = response.data.map(item => ({ title: item.name + " - " + item.author, url: config.baseURL + item.url }))
+        } else {
+            tools.NotifyError(response.message)
+        }
+    })
+}
+
+// 上传音乐
+const dialogVisible = ref(false)
+const uploadButton = ref(null)
+const fileList = ref([])
+
+function cancelUpload() {
+    dialogVisible.value = false
+    fileList.value = []
+}
+
+function confirmUpload() {
+    api.music.uploadMusic(fileList.value).then(response => {
+        if (response.code == 0) {
+            tools.NotifySuccess('上传成功')
+            dialogVisible.value = false
+        } else {
+            alert("上传失败")
+            tools.NotifyError(response.message)
         }
     })
 }
@@ -138,31 +163,38 @@ function playDbClickMusic(idx) {
 </script>
 
 <template>
+    <!-- 侧边栏 -->
     <div class="sidebar" id="sidebar">
         <h1>Pandora</h1>
         <ul>
             <li @click="getMusicList">💖 我的音乐</li>
-            <li>🎐 上传音乐</li>
         </ul>
     </div>
     <div class="divider" id="divider" @mousedown="clickDrag"></div>
+
+    <!-- 音乐列表主体 -->
     <div class="main-content">
         <div class="search-bar">
-            <!-- <input type="text" placeholder="搜索音乐..." @keyup.enter="searchMusic" v-model="queryMusic"> -->
             <el-input v-model="queryMusic" placeholder="搜索音乐..." clearable @keyup.enter="searchMusic" />
         </div>
         <div class="song-list">
+            <!-- <el-table :data="musicList" style="width: 100%" @row-dblclick="playDbClickMusic">
+                <el-table-column prop="name" label="歌曲" />
+                <el-table-column prop="author" label="歌手" />
+                <el-table-column prop="address" label="操作" />
+            </el-table> -->
+
             <table>
                 <tbody>
                     <tr>
                         <th>歌曲</th>
                         <th>歌手</th>
-                        <th>时长</th>
+                        <!-- <th>时长</th> -->
                     </tr>
                     <tr v-for="(v, idx) in musicList" @dblclick="playDbClickMusic(idx)">
                         <td>{{ v.name }}</td>
                         <td>{{ v.author }}</td>
-                        <td>{{ v.time }}</td>
+                        <!-- <td>{{ v.time }}</td> -->
                     </tr>
                 </tbody>
             </table>
@@ -177,18 +209,31 @@ function playDbClickMusic(idx) {
                     <span id="current-song" ref="currentSongDisplay"> 未选择歌曲</span>
                 </div>
                 <div class="player-controls">
-                    <el-button class="playing-rand" id="rand-button" ref="randButton" @click="playRandMusic" text>
-                        <span class="playing-icon">🔀</span>
-                    </el-button>
-                    <el-button id="prev-button" ref="prevButton" @click="playPrevMusic" text>
-                        <span class="playing-icon">⬅️</span>
-                    </el-button>
-                    <el-button id="play-pause-button" @click="playMusic" ref="playPauseButton" text>
-                        <span class="playing-icon" ref="playPauseButtonText">▶️</span>
-                    </el-button>
-                    <el-button id="next-button" ref="nextButton" @click="playNextMusic" text>
-                        <span class="playing-icon">➡️</span>
-                    </el-button>
+                    <el-tooltip content="上传音乐" effect="light">
+                        <el-button id="upload-button" ref="uploadButton" @click="dialogVisible = true" text>
+                            <span class="playing-icon">⏏️</span>
+                        </el-button>
+                    </el-tooltip>
+                    <el-tooltip content="播放方式" effect="light">
+                        <el-button id="rand-button" ref="randButton" @click="playRandMusic" text>
+                            <span class="playing-icon">🔀</span>
+                        </el-button>
+                    </el-tooltip>
+                    <el-tooltip content="上一首" effect="light">
+                        <el-button id="prev-button" ref="prevButton" @click="playPrevMusic" text>
+                            <span class="playing-icon">⬅️</span>
+                        </el-button>
+                    </el-tooltip>
+                    <el-tooltip content="播放/暂停" effect="light">
+                        <el-button id="play-pause-button" @click="playMusic" ref="playPauseButton" text>
+                            <span class="playing-icon" ref="playPauseButtonText">▶️</span>
+                        </el-button>
+                    </el-tooltip>
+                    <el-tooltip content="下一首" effect="light">
+                        <el-button id="next-button" ref="nextButton" @click="playNextMusic" text>
+                            <span class="playing-icon">➡️</span>
+                        </el-button>
+                    </el-tooltip>
                 </div>
                 <div>
                     <div class="playing-time" id="time-display" ref="timeDisplay">0:00 / 0:00</div>
@@ -198,14 +243,31 @@ function playDbClickMusic(idx) {
     </div>
 
     <audio id="audio-player" ref="audioPlayer" @timeupdate="musicPlaying" @ended="musicEnded"></audio>
+
+    <!-- 上传音乐dialog -->
+    <el-dialog v-model="dialogVisible" title="上传音乐" width="500" :before-close="cancelUpload">
+        <span>⚠️ 上传音乐时，文件名称应遵循格式：歌曲名 - 作者名。</span>
+        <br><br>
+        <el-upload v-model:file-list="fileList" multiple :auto-upload="false">
+            <el-button type="primary">Click to upload</el-button>
+        </el-upload>
+        <template #footer>
+            <div class="dialog-footer">
+                <el-button @click="cancelUpload">Cancel</el-button>
+                <el-button type="primary" @click="confirmUpload">
+                    Confirm
+                </el-button>
+            </div>
+        </template>
+    </el-dialog>
 </template>
 
 <style scoped>
-* {
+/* * {
     margin: 0;
     padding: 0;
     box-sizing: border-box;
-}
+} */
 
 .sidebar {
     background-color: #2c3e50;
@@ -259,6 +321,7 @@ h1 {
 
 ul {
     list-style-type: none;
+    padding-left: 0;
 }
 
 li {
@@ -329,6 +392,10 @@ tr:hover {
     /* gap: 10px; */
     padding-top: 12px;
     padding-right: 20px;
+}
+
+.player-controls button {
+    padding: 0;
 }
 
 .now-playing {

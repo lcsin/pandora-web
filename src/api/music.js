@@ -17,4 +17,17 @@ function searchMusic(query) {
     })
 }
 
-export default { getMusicList, searchMusic }
+function uploadMusic(fileList) {
+    return request({
+        method: "POST",
+        url: "/music/upload",
+        headers: {
+            "Content-Type": "multipart/form-data",
+        },
+        data: {
+            "file": fileList
+        }
+    })
+}
+
+export default { getMusicList, searchMusic, uploadMusic }
