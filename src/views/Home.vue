@@ -50,6 +50,7 @@ function confirmUpload() {
         if (response.code == 0) {
             tools.NotifySuccess('上传成功')
             dialogVisible.value = false
+            getMusicList()
         } else {
             alert("上传失败")
             tools.NotifyError(response.message)
