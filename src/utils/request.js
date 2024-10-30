@@ -7,7 +7,7 @@ const request = axios.create({
 })
 
 request.interceptors.request.use(config => {
-    config.headers.Authorization = localStorage.getItem("pandora.token")
+    // config.headers.Authorization = localStorage.getItem("pandora.token")
     return config
 })
 
