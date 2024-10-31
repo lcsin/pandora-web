@@ -135,7 +135,7 @@ const timeDisplay = ref(null);
 const currentSongDisplay = ref(null);
 
 const currentTrack = ref(0);
-const playingCommand = ref("")
+const playingCommand = ref("rand")
 const playingCommandText = ref(null)
 
 function playingCommond(command) {
@@ -174,10 +174,18 @@ function playRandMusic() {
 }
 
 function playPrevMusic() {
+    if (playingCommand.value == "rand") {
+        playRandMusic()
+        return
+    }
     loadTrack(currentTrack.value - 1);
 }
 
 function playNextMusic() {
+    if (playingCommand.value == "rand") {
+        playRandMusic()
+        return
+    }
     loadTrack(currentTrack.value + 1);
 }
 
