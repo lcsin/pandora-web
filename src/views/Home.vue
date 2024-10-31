@@ -5,7 +5,21 @@ import config from '../config/config';
 import tools from '../utils/tools';
 
 onMounted(() => {
-    getMusicList()
+    tableLoading.value = true
+    api.music.getMusicList().then(response => {
+        if (response.code == 0) {
+            musicList.value = response.data
+            playList.value = response.data.map(item => ({ title: item.name + " - " + item.author, url: config.baseURL + item.url }))
+            tableLoading.value = false
+            // 初始化播放第一首
+            if (playList.value.length > 0) {
+                audioPlayer.value.src = playList.value[0].url;
+                currentSongDisplay.value.textContent = playList.value[0].title;
+            }
+        } else {
+            tools.NotifyError(response.message)
+        }
+    })
 })
 
 
@@ -120,13 +134,25 @@ const progress = ref(null);
 const timeDisplay = ref(null);
 const currentSongDisplay = ref(null);
 
-let currentTrack = ref(0);
-let randFlag = ref(false)
+const currentTrack = ref(0);
+const playingCommand = ref("")
+const playingCommandText = ref(null)
+
+function playingCommond(command) {
+    playingCommand.value = command
+    switch (playingCommand.value) {
+        case "rand": playingCommandText.value.textContent = '🔀'; break
+        case "order": playingCommandText.value.textContent = '⤵️'; break
+        case "single circle": playingCommandText.value.textContent = '🔂'; break
+        case "order circle": playingCommandText.value.textContent = '🔄'; break
+    }
+}
+
 function loadTrack(trackIndex) {
     if (trackIndex >= 0 && trackIndex < playList.value.length) {
-        currentTrack = trackIndex;
-        audioPlayer.value.src = playList.value[currentTrack].url;
-        currentSongDisplay.value.textContent = playList.value[currentTrack].title;
+        currentTrack.value = trackIndex;
+        audioPlayer.value.src = playList.value[currentTrack.value].url;
+        currentSongDisplay.value.textContent = playList.value[currentTrack.value].title;
         audioPlayer.value.play();
         playPauseButtonText.value.textContent = "⏸️";
     }
@@ -143,17 +169,16 @@ function playMusic() {
 }
 
 function playRandMusic() {
-    randFlag.value = true
-    currentTrack = Math.floor(Math.random() * playList.value.length)
-    loadTrack(currentTrack)
+    currentTrack.value = Math.floor(Math.random() * playList.value.length)
+    loadTrack(currentTrack.value)
 }
 
 function playPrevMusic() {
-    loadTrack(currentTrack - 1);
+    loadTrack(currentTrack.value - 1);
 }
 
 function playNextMusic() {
-    loadTrack(currentTrack + 1);
+    loadTrack(currentTrack.value + 1);
 }
 
 function playProgressMusic(e) {
@@ -177,12 +202,19 @@ function musicPlaying() {
 }
 
 function musicEnded() {
-    if (randFlag) {
-        currentTrack = Math.floor(Math.random() * playList.value.length)
-        loadTrack(currentTrack)
-    } else {
-        loadTrack(currentTrack + 1);
+    switch (playingCommand.value) {
+        case "rand": playingCommandText.value.textContent = '🔀'; playRandMusic(); break
+        case "order": playingCommandText.value.textContent = '⤵️'; loadTrack(currentTrack.value + 1); break
+        case "single circle": playingCommandText.value.textContent = '🔂'; loadTrack(currentTrack.value); break
+        case "order circle": playingCommandText.value.textContent = '🔄'; loadTrack((currentTrack.value + 1) % (playList.value.length)); break
     }
+
+    // if (randFlag) {
+    //     currentTrack = Math.floor(Math.random() * playList.value.length)
+    //     loadTrack(currentTrack)
+    // } else {
+    //     loadTrack(currentTrack + 1);
+    // }
 }
 
 function playDbClickMusic(idx) {
@@ -284,14 +316,22 @@ function playDbClickMusic(idx) {
                             <span class="playing-icon">⏏️</span>
                         </el-button>
                     </el-tooltip>
-                    <el-tooltip content="播放方式" effect="light">
-                        <el-button id="rand-button" ref="randButton" @click="playRandMusic" text>
-                            <span class="playing-icon">🔀</span>
+                    <el-dropdown trigger="click" @command="playingCommond">
+                        <el-button id="playing-command-button" ref="playingCommandButton" text>
+                            <span class="playing-icon" ref="playingCommandText">🔀</span>
                         </el-button>
-                    </el-tooltip>
-                    <el-tooltip content="上一首" effect="light">
+                        <template #dropdown>
+                            <el-dropdown-menu>
+                                <el-dropdown-item command="rand">🔀 随机播放</el-dropdown-item>
+                                <el-dropdown-item command="order">⤵️ 顺序播放</el-dropdown-item>
+                                <el-dropdown-item command="single circle">🔂 单曲循环</el-dropdown-item>
+                                <el-dropdown-item command="order circle">🔄 列表循环</el-dropdown-item>
+                            </el-dropdown-menu>
+                        </template>
+                    </el-dropdown>
+                    <el-tooltip content=" 上一首" effect="light">
                         <el-button id="prev-button" ref="prevButton" @click="playPrevMusic" text>
-                            <span class="playing-icon">⬅️</span>
+                            <span class="playing-icon">⏮️</span>
                         </el-button>
                     </el-tooltip>
                     <el-tooltip content="播放/暂停" effect="light">
@@ -301,7 +341,7 @@ function playDbClickMusic(idx) {
                     </el-tooltip>
                     <el-tooltip content="下一首" effect="light">
                         <el-button id="next-button" ref="nextButton" @click="playNextMusic" text>
-                            <span class="playing-icon">➡️</span>
+                            <span class="playing-icon">⏭️</span>
                         </el-button>
                     </el-tooltip>
                 </div>
@@ -493,7 +533,9 @@ tr:hover {
 
 .player-controls button {
     padding: 0;
+    margin-left: 10px;
 }
+
 
 .now-playing {
     font-size: 14px;
