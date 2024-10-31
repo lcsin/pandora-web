@@ -331,7 +331,7 @@ function playDbClickMusic(idx) {
                     </el-dropdown>
                     <el-tooltip content=" 上一首" effect="light">
                         <el-button id="prev-button" ref="prevButton" @click="playPrevMusic" text>
-                            <span class="playing-icon">⏮️</span>
+                            <span class="playing-icon">⬅️</span>
                         </el-button>
                     </el-tooltip>
                     <el-tooltip content="播放/暂停" effect="light">
@@ -341,7 +341,7 @@ function playDbClickMusic(idx) {
                     </el-tooltip>
                     <el-tooltip content="下一首" effect="light">
                         <el-button id="next-button" ref="nextButton" @click="playNextMusic" text>
-                            <span class="playing-icon">⏭️</span>
+                            <span class="playing-icon">➡️</span>
                         </el-button>
                     </el-tooltip>
                 </div>
